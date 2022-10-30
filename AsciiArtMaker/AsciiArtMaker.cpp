@@ -9,7 +9,7 @@ void MakeArt(PWSTR path) {
     BITMAPINFOHEADER bih;
 
     DWORD readWord;
-    std::ofstream res("File.txt");
+    std::ofstream res("God Given Girl.txt");
     if (picture == INVALID_HANDLE_VALUE) return;
     ReadFile(picture, &bfh, sizeof(bfh), &readWord, NULL);
     ReadFile(picture, &bih, sizeof(bih), &readWord, NULL);
@@ -37,6 +37,7 @@ void MakeArt(PWSTR path) {
             color-=60;
             color *= 2;
             color = (color < 255)? color : 255;
+           color = (color < 0) ? 0 : color;
             
             //result symb
             result [x][y]=Gradient[color*11/256];
@@ -47,7 +48,7 @@ void MakeArt(PWSTR path) {
     
     }
     for (int y = bih.biHeight-1; y >=0; y--) {
-        for (int x = bih.biWidth-1; x >=0; x--)
+        for (int x =0; x <bih.biWidth; x++)
         {
             //output result
             res << result[x][y];
@@ -57,7 +58,12 @@ void MakeArt(PWSTR path) {
         res << '\n';
     }
     res.close();
-
+    
+    //free memory
+   for (int x = 0; x < bih.biWidth; x++) {     
+       delete[]result[x];
+   }
+   delete[]result;
     
 }
 int main()
