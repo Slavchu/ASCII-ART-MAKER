@@ -14,6 +14,9 @@ void MakeArt(PWSTR path) {
     ReadFile(picture, &bfh, sizeof(bfh), &readWord, NULL);
     ReadFile(picture, &bih, sizeof(bih), &readWord, NULL);
     std::cout<< "Width: " << bih.biWidth << " Height:" << bih.biHeight << std::endl;
+    OVERLAPPED overlapped{ 0 };
+    LARGE_INTEGER li; li.QuadPart = 54 + 28 * 3;
+
     char** result = new char * [bih.biWidth];
     for (int x = 0; x < bih.biWidth; x++) {
         result[x] = new char[bih.biHeight];
@@ -22,28 +25,29 @@ void MakeArt(PWSTR path) {
     for (int y = 0; y < bih.biHeight; y++) {
         for (int x = 0; x < bih.biWidth; x++)
         {
-            
-            
-            ReadFile(picture, &pixel, 3, &readWord, NULL); //reading file
+                    
+            overlapped.Offset = li.LowPart;
+            overlapped.OffsetHigh = li.HighPart;
+            ReadFile(picture, &pixel, 3, &readWord, &overlapped); //reading file
             int color = pixel[0] + pixel[1] + pixel[2]; //black & white converation
             color /= 3;
             
             
             // Add contrast
-            color-=45;
+            color-=60;
             color *= 2;
             color = (color < 255)? color : 255;
             
             //result symb
             result [x][y]=Gradient[color*11/256];
-            
+            li.QuadPart += 3;
         }
         
-        ReadFile(picture, &pixel, 1, &readWord, NULL); // ignore extra byte
+        li.QuadPart+= bih.biWidth%4; // ignore extra byte
     
     }
     for (int y = bih.biHeight-1; y >=0; y--) {
-        for (int x = 0; x < bih.biWidth; x++)
+        for (int x = bih.biWidth-1; x >=0; x--)
         {
             //output result
             res << result[x][y];
