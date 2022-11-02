@@ -1,22 +1,33 @@
 ﻿#include <iostream>
+#include <cmath>
 #include <fstream>
 #include <Windows.h>
 #include <shobjidl.h>
-char Gradient[] = " .:-=+*/0#%@";
+char Gradient[] = " .:-=+*/0#%";
 void MakeArt(PWSTR path) {
     HANDLE picture = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL,OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     BITMAPFILEHEADER bfh;
     BITMAPINFOHEADER bih;
-
+    int contNum; float conMul;
+    std::cout << "Enter contrast value(0-255):";
+    std::cin >> contNum;
+    std::cout << "Enter contrast multiplyer(-255 - 255): ";
+    std::cin >> conMul;
     DWORD readWord;
-    std::ofstream res("God Given Girl.txt");
+    
     if (picture == INVALID_HANDLE_VALUE) return;
     ReadFile(picture, &bfh, sizeof(bfh), &readWord, NULL);
     ReadFile(picture, &bih, sizeof(bih), &readWord, NULL);
     std::cout<< "Width: " << bih.biWidth << " Height:" << bih.biHeight << std::endl;
+    if (bih.biBitCount != 24) {
+        
+        std::cout << "Invalid file format\n";
+        system("pause");
+        return; 
+    }
     OVERLAPPED overlapped{ 0 };
-    LARGE_INTEGER li; li.QuadPart = 54 + 28 * 3;
-
+    LARGE_INTEGER li; li.QuadPart = 54;
+    std::ofstream res("God Given Girl.txt");
     char** result = new char * [bih.biWidth];
     for (int x = 0; x < bih.biWidth; x++) {
         result[x] = new char[bih.biHeight];
@@ -34,24 +45,25 @@ void MakeArt(PWSTR path) {
             
             
             // Add contrast
-            color-=60;
-            color *= 2;
+            color-=contNum;
+            color *= conMul;
             color = (color < 255)? color : 255;
            color = (color < 0) ? 0 : color;
-            
-            //result symb
-            result [x][y]=Gradient[color*11/256];
+           //color = 255 - color;
+           short index = std::round((double)(color * 10 / 255));
+           
+            result [x][y]=Gradient[index];
             li.QuadPart += 3;
         }
         
-        li.QuadPart+= bih.biWidth%4; // ignore extra byte
+       li.QuadPart+=bih.biWidth%4; // ignore extra byte
     
     }
     for (int y = bih.biHeight-1; y >=0; y--) {
         for (int x =0; x <bih.biWidth; x++)
         {
             //output result
-            res << result[x][y];
+            res << result[x][y];// result[x][y];
 
         }
 
